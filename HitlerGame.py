@@ -1,6 +1,7 @@
 from HitlerBoard import HitlerBoard, HitlerState
-from HitlerPlayer import DumbPlayer
+from HitlerPlayer import DumbPlayer, DumbOvertFascist
 from random import randint
+from tqdm import tqdm
 
 
 class HitlerGame(object):
@@ -69,7 +70,7 @@ class HitlerGame(object):
         for num in range(self.playernum):
             # name = raw_input("Player #%d's name?\n" % num)
             name = "Bot %d" % num
-            player = DumbPlayer(num,
+            player = DumbOvertFascist(num,
                                 name,
                                 roles.pop(0),
                                 self.state)
@@ -239,7 +240,8 @@ def newgame():
 
 if __name__ == "__main__":
     games = {"Liberal_policy": 0, "Liberal_kill_Hitler": 0, "Fascist_policy": 0, "Fascist_elect_Hitler": 0}
-    for ii in range(100000):
+    print("Beginning play.")
+    for ii in tqdm(range(100000)):
         r = newgame()
         if r == -2:
             games["Fascist_elect_Hitler"] += 1

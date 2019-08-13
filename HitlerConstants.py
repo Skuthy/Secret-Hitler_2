@@ -79,3 +79,16 @@ board = {
         "fascist": 11
     }
 }
+
+pass_statements = {
+    1 : "I drew three fascists.",
+    2 : "I drew two fascists and a liberal, and discarded a fascist",
+    3 : "I drew two liberals and a fascist, and discarded a liberal to give a choice.",
+    4 : "I drew two liberals and a fascist, and discarded the fascist to force liberal.",
+    5 : "I drew three liberals."
+}
+
+choice_statements = {
+    1 : "I was passed a choice.",
+    2 : "I was passed no choice."
+}

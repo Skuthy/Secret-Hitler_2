@@ -12,8 +12,14 @@ class HitlerBoard(object):
         self.num_fascists = players[self.num_players]["fascist"]
         self.fascist_track_actions = players[self.num_players]["track"]
 
-        self.policies = ([HitlerPolicy.Liberal()] * board["policy"]["liberal"] +
-                         [HitlerPolicy.Fascist()] * board["policy"]["fascist"])
+        self.policies = []
+                         
+        #add Liberal policy cards
+        for x in range(board["policy"]["liberal"]):
+            self.policies += [HitlerPolicy.Liberal()]
+        #add Fascist policy cards
+        for x in range(board["policy"]["fascist"]):
+            self.policies += [HitlerPolicy.Fascist()]
         shuffle(self.policies)
         self.discards = []
         self.previous = []
@@ -39,9 +45,11 @@ class HitlerBoard(object):
         else:
             # Shuffle the discard and add them to the policies pile again
             #print("Draw pile is empty! Shuffling discards and putting into draw pile")
+            self.discards += self.policies
+            self.policies = []
             shuffle(self.discards)
             #print("Discards: %s" % self.discards)
-            self.policies = self.policies + self.discards
+            self.policies = self.discards
             self.discards = []
             #print ("New policy pile: %s" % self.policies)
             assert len(self.policies) > num

@@ -7,7 +7,7 @@ class HitlerPlayer(object):
         self.role = role
         self.state = state
         self.hitler = None
-        self.fascists = None
+        self.fascists = []
         self.is_dead = False
         self.inspected_players = {}
 
@@ -100,7 +100,7 @@ class DumbOvertFascist(HitlerPlayer):
         """
         Always vote yes to a vote involving at least one fascist if you're fascist, randomly otherwise
         """
-        if (self.is_fascist and self.fascists != None):
+        if (self.is_fascist and len(self.fascists) > 0):
             if (self.state.president in self.fascists or self.state.chancellor in self.fascists):
                 return Ja()
             else:
@@ -135,7 +135,7 @@ class DumbOvertFascist(HitlerPlayer):
         :return:
         """
         kill = self
-        while kill == self or kill.is_dead or (self.is_fascist and self.fascists != None and kill in self.fascists):
+        while kill == self or kill.is_dead or (self.is_fascist and len(self.fascists) > 0 and kill in self.fascists):
             kill = choice(self.state.players)
         return kill
 
@@ -155,7 +155,7 @@ class DumbOvertFascist(HitlerPlayer):
         :return:
         """
         choose = self
-        while choose == self or choose.is_dead or (self.is_fascist and self.fascists != None and choose not in self.fascists):
+        while choose == self or choose.is_dead or (self.is_fascist and len(self.fascists) > 0 and choose not in self.fascists):
             choose = choice(self.state.players)
         return choose
 
@@ -186,9 +186,9 @@ class DumbOvertFascist(HitlerPlayer):
 
     def veto(self):
         if (self.is_fascist):
-            return false
+            return False
         else:
-            return true
+            return True
 
 
 class DumbPlayer(HitlerPlayer):

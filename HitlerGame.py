@@ -1,16 +1,18 @@
 from HitlerBoard import HitlerBoard, HitlerState
 from HitlerPlayer import DumbPlayer, DumbOvertFascist
+from HitlerStats import HitlerStats
 from random import randint
 from tqdm import tqdm
 
 
 class HitlerGame(object):
-    def __init__(self, playernum=0):
+    def __init__(self, playernum=0, stats=None):
         """Stuff"""
         self.playernum = playernum
         self.hitler = None
         self.board = None
         self.state = HitlerState()
+        self.stats = stats
 
     def play(self):
         """Main game loop"""
@@ -144,6 +146,8 @@ class HitlerGame(object):
     def vote_failed(self):
         #print("Vote failed!")
         self.state.failed_votes += 1
+        if self.stats != None:
+            self.stats.rando()
 
         if self.state.failed_votes == 3:
             self.state.failed_votes = 0
@@ -201,8 +205,9 @@ class HitlerGame(object):
             killed_player.is_dead = True
 
         elif action == "inspect":
-            inspect = self.state.president.inspect_player()
+            inspect = self.state.president
             while inspect.is_dead or inspect == self.state.president:
+                inspect = self.state.president.inspect_player()
                 self.state.president.inspected_players[inspect] = inspect.role.party_membership
 
         elif action == "choose":
@@ -218,31 +223,41 @@ class HitlerGame(object):
     def finish_game(self):
         if self.hitler_chancellor_win():
             #print("Fascists win by electing Hitler!")
+            for x in [player for player in self.state.players if player.is_fascist]:
+                self.stats.add_agent_win(x.name)
             return -2
 
         elif self.policy_win():
             if self.state.liberal_track == 5:
+                for x in [player for player in self.state.players if not player.is_fascist]:
+                    self.stats.add_agent_win(x.name) 
                 #print("Liberals win by policy!")
                 return 1
             else:
+                for x in [player for player in self.state.players if player.is_fascist]:
+                    self.stats.add_agent_win(x.name)
                 #print("Fascists win by policy!")
                 return -1
 
         elif self.hitler.is_dead:
+            for x in [player for player in self.state.players if not player.is_fascist]:
+                self.stats.add_agent_win(x.name) 
             #print("Liberals win by shooting Hitler!")
             return 2
 
 
-def newgame():
-    game = HitlerGame(10)
+def newgame(statCollector):
+    game = HitlerGame(10, statCollector)
     return game.play()
 
 
 if __name__ == "__main__":
     games = {"Liberal_policy": 0, "Liberal_kill_Hitler": 0, "Fascist_policy": 0, "Fascist_elect_Hitler": 0}
     print("Beginning play.")
-    for ii in tqdm(range(100000)):
-        r = newgame()
+    statCollector = HitlerStats()
+    numgames = 100000
+    for ii in tqdm(range(numgames)):
+        r = newgame(statCollector)
         if r == -2:
             games["Fascist_elect_Hitler"] += 1
         elif r == -1:
@@ -255,3 +270,5 @@ if __name__ == "__main__":
     print(games)
     print(str(games["Liberal_policy"] + games["Liberal_kill_Hitler"]) + ":" +
           str(games["Fascist_policy"] + games["Fascist_elect_Hitler"]))
+    print("Random policies passed: " + str(statCollector.random_policies_played) + " (Random policies per game: " + str(statCollector.random_policies_played / numgames) + ")")
+    print(str(statCollector.agent_wins))

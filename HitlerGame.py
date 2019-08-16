@@ -1,8 +1,9 @@
 from HitlerBoard import HitlerBoard, HitlerState
-from HitlerPlayer import DumbPlayer, DumbOvertFascist
 from HitlerStats import HitlerStats
-from random import randint
+from random import randint, choice
 from tqdm import tqdm
+import importlib
+import Players
 
 
 class HitlerGame(object):
@@ -13,9 +14,11 @@ class HitlerGame(object):
         self.board = None
         self.state = HitlerState()
         self.stats = stats
+        self.playertypes = []
 
     def play(self):
         """Main game loop"""
+        self.load_players()
         self.assign_players()
         self.inform_fascists()
         self.choose_first_president()
@@ -62,17 +65,23 @@ class HitlerGame(object):
 
         return False
 
+    def load_players(self):
+        for player in Players.__all__:
+            name = getattr(importlib.import_module("Players." + player), "name")
+            self.playertypes.append(getattr(importlib.import_module("Players." + player), name))
+
     def assign_players(self):
         if self.playernum == 0:
-            self.playernum = int(raw_input("How many players?\n"))
+            self.playernum = int(input("How many players?\n"))
 
         self.board = HitlerBoard(self.state, self.playernum)
         roles = self.board.shuffle_roles()
 
         for num in range(self.playernum):
             # name = raw_input("Player #%d's name?\n" % num)
-            name = "Bot %d" % num
-            player = DumbOvertFascist(num,
+            playertype = choice(self.playertypes)
+            name = playertype.__name__ + ": " + str(num)
+            player = playertype(num,
                                 name,
                                 roles.pop(0),
                                 self.state)

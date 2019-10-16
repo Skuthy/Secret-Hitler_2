@@ -1,3 +1,46 @@
+import HitlerConstants
+
+class TableTalk(object):
+    ## Object for players to make claims or assertions
+    def __init__(self, make_assertion, make_pass_claim, make_passed_claim):
+        self._make_assertion = make_assertion
+        self._make_pass_claim = make_pass_claim
+        self._make_passed_claim = make_passed_claim
+        self._receive_assertion = None
+        self._receive_pass_claim = None
+        self._receive_passed_claim = None
+
+    def make_assertion(self, playerid, role, confidence=100):
+        # assert that playerid is role
+        # role: 0 = liberal, 1 = fascist, 2 = hitler
+        # confidence: 0 = no confidence, 100 = perfect confidence
+        if (confidence < 0 or confidence > 100):
+            raise Exception("Confidence must be in the range of 0-100")
+        self._make_assertion(playerid, role, confidence)
+
+    def make_pass_claim(self, claim, myPlayerid, destPlayerId):
+        # claim that you passed one of a set of claims (see HitlerConstants)
+        if claim not in HitlerConstants.pass_statements.keys():
+            raise Exception("Pass claim invalid")
+        self._make_pass_claim(claim, myPlayerid, destPlayerId)
+    
+    def make_passed_claim(self, claim, myPlayerId, srcPlayerId):
+        # claim that playerid passed you one of two things
+        if claim not in HitlerConstants.choice_statements.keys():
+            raise Exception("Passed claim invalid")
+        self._make_passed_claim(claim, myPlayerId, srcPlayerId)
+    
+    def set_assertion_receiver(self, receiver):
+        # set handler for calls to make_assertion
+        self._receive_assertion = receiver
+
+    def set_pass_claim_receiver(self, receiver):
+        self._receive_pass_claim = receiver
+
+    def set_passed_claim_receiver(self, receiver):
+        self._receive_passed_claim = receiver
+
+
 class HitlerPlayer(object):
     def __init__(self, id, name, role, state):
         self.id = id

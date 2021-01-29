@@ -82,7 +82,7 @@ class DumbPlayer(HitlerPlayer):
         #print("Player #%d allowing: (%s,%s), discarding: %s" % (self.id, policies[0], policies[1], policies[2]))
         return ([policies[0], policies[1]], policies[2])
 
-    def veto(self):
+    def veto(self, policies):
         veto = bool(getrandbits(1))
         #print("Player #%d choosing to veto: %s" % (self.id, veto))
         return veto

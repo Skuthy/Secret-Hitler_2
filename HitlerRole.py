@@ -6,6 +6,9 @@ class Role(object):
         self.party_membership = ""
         self.role = ""
 
+    def __str__(self):
+        return self.role
+
     def __repr__(self):
         return self.role.title()
 

@@ -1,14 +1,22 @@
+from typing import List, Any
+
 from HitlerBoard import HitlerBoard, HitlerState
 from HitlerStats import HitlerStats
 from random import randint, choice
 from tqdm import tqdm
 import importlib
 import Players
+from Players.DumbOvertFascist import DumbOvertFascist
+from Players.DumbPlayer import DumbPlayer
+from Players.GoodGuy import GoodGuy
+from Players.TrustingPlayer import TrustingPlayer
+
 
 
 class HitlerGame(object):
     def __init__(self, playernum=0, stats=None):
         """Stuff"""
+        self.HitlerState = None
         self.playernum = playernum
         self.hitler = None
         self.board = None
@@ -26,14 +34,16 @@ class HitlerGame(object):
         loop_game = True
 
         while loop_game:
+            # print("turn")
             loop_game = not self.turn()
 
-        #print("Game's over!")
+        # print("Game's over!")
         return self.finish_game()
 
     def turn(self):
         """
         Take a turn.
+        return: boolean - true if game finished, false if continue playing
         """
         # First, pass on the presidency
         self.set_next_president()
@@ -45,7 +55,7 @@ class HitlerGame(object):
         voted = self.voting()
 
         if not voted:
-            #print("Vote failed!")
+            # print("Vote failed!")
             action_enacted = self.vote_failed()
         else:
             # Possibility to win if Hitler is chancellor and more than 2 fascist policies enacted.
@@ -79,7 +89,13 @@ class HitlerGame(object):
 
         for num in range(self.playernum):
             # name = raw_input("Player #%d's name?\n" % num)
-            playertype = choice(self.playertypes)
+            # if str(roles[0]) == 'liberal':
+            if num == 50:
+                playertype = DumbPlayer #choice(self.playertypes)
+            else:
+                # print(roles)
+                playertype = DumbPlayer
+            #playertype = TrustingPlayer DumbOvertFascist DumbPlayer
             name = playertype.__name__ + ": " + str(num)
             player = playertype(num,
                                 name,
@@ -95,7 +111,7 @@ class HitlerGame(object):
     def inform_fascists(self):
         """
         Inform the fascists who the other fascists are.
-        If there are 5 players, Hitler knows who the other fascist is.
+        If there are 5 or 6 players, Hitler knows who the other fascist is.
         """
         fascists = [player for player in self.state.players if player.is_fascist]
 
@@ -129,7 +145,7 @@ class HitlerGame(object):
                 chancellor == self.state.ex_president) or
                chancellor.is_dead):
             chancellor = self.state.president.nominate_chancellor()
-
+        # nutna kontrola v nominate_chancellor pro kazdeho hrace - aby volil validniho chancellora nebo se to zacykli
         return chancellor
 
     def voting(self):
@@ -145,6 +161,7 @@ class HitlerGame(object):
         positivity = 0
 
         for vote in self.state.last_votes:
+            # votes are booleans - if vote means if vote == true
             if vote:
                 positivity += 1
             else:
@@ -153,15 +170,14 @@ class HitlerGame(object):
         return positivity > 0
 
     def vote_failed(self):
-        #print("Vote failed!")
         self.state.failed_votes += 1
-        if self.stats != None:
+        if self.stats is not None:
             self.stats.rando()
 
         if self.state.failed_votes == 3:
             self.state.failed_votes = 0
 
-            #print("Too many failed votes! Citizens are taking action into their own hands")
+            # print("Too many failed votes! Citizens are taking action into their own hands")
             return self.board.enact_policy(self.board.draw_policy(1)[0])
 
         else:
@@ -172,15 +188,16 @@ class HitlerGame(object):
         """
         The vote has passed! Get the president and chancellor to do their thang.
         """
-        #print("Vote passed!")
+        # print("Vote passed!")
+        self.state.failed_votes = 0
 
         (take, discard) = self.state.president.filter_policies(self.board.draw_policy(3))
         self.board.discards.append(discard)
 
         if (self.state.veto and
-                self.state.chancellor.chancellor_veto(take) and
-                self.state.president.president_veto()):
-            #print("Vote vetoed!")
+                self.state.chancellor.veto(take) and
+                self.state.president.veto(take)):
+            self.board.discards = take + self.board.discards
             return self.vote_failed()
 
         (enact, discard) = self.state.chancellor.enact_policy(take)
@@ -196,6 +213,7 @@ class HitlerGame(object):
 
     def perform_vote_action(self):
         action = self.board.fascist_track_actions[self.state.fascist_track - 1]
+
         if action is None:
             #print("No action")
             return
@@ -213,11 +231,17 @@ class HitlerGame(object):
                 killed_player = self.state.president.kill()
             killed_player.is_dead = True
 
+            if killed_player.is_fascist and not killed_player.is_hitler:
+                self.stats.smrti('Fascist kills')
+            elif killed_player.is_fascist:
+                self.stats.smrti('Hitler kills')
+            else:
+                self.stats.smrti('Liberal kills')
         elif action == "inspect":
-            inspect = self.state.president
-            while inspect.is_dead or inspect == self.state.president:
-                inspect = self.state.president.inspect_player()
-                self.state.president.inspected_players[inspect] = inspect.role.party_membership
+            inspected_player = self.state.president
+            while inspected_player.is_dead or inspected_player == self.state.president:
+                inspected_player = self.state.president.inspect_player()
+                self.state.president.inspected_players[inspected_player] = inspected_player.role.party_membership
 
         elif action == "choose":
             chosen = self.state.president
@@ -230,17 +254,21 @@ class HitlerGame(object):
             assert False, "Unrecognised action!"
 
     def finish_game(self):
-        if self.hitler_chancellor_win():
+        if self.hitler.is_dead:
+            for x in [player for player in self.state.players if not player.is_fascist]:
+                self.stats.add_agent_win(x.name)
+                #print("Liberals win by shooting Hitler!")
+            return 2
+        elif self.hitler_chancellor_win():
             #print("Fascists win by electing Hitler!")
             for x in [player for player in self.state.players if player.is_fascist]:
                 self.stats.add_agent_win(x.name)
             return -2
-
         elif self.policy_win():
             if self.state.liberal_track == 5:
                 for x in [player for player in self.state.players if not player.is_fascist]:
-                    self.stats.add_agent_win(x.name) 
-                #print("Liberals win by policy!")
+                    self.stats.add_agent_win(x.name)
+                    #print("Liberals win by policy!")
                 return 1
             else:
                 for x in [player for player in self.state.players if player.is_fascist]:
@@ -248,15 +276,10 @@ class HitlerGame(object):
                 #print("Fascists win by policy!")
                 return -1
 
-        elif self.hitler.is_dead:
-            for x in [player for player in self.state.players if not player.is_fascist]:
-                self.stats.add_agent_win(x.name) 
-            #print("Liberals win by shooting Hitler!")
-            return 2
 
 
 def newgame(statCollector):
-    game = HitlerGame(10, statCollector)
+    game = HitlerGame(8, statCollector)
     return game.play()
 
 
@@ -264,8 +287,9 @@ if __name__ == "__main__":
     games = {"Liberal_policy": 0, "Liberal_kill_Hitler": 0, "Fascist_policy": 0, "Fascist_elect_Hitler": 0}
     print("Beginning play.")
     statCollector = HitlerStats()
-    numgames = 100000
+    numgames = 10000
     for ii in tqdm(range(numgames)):
+        # print(ii)
         r = newgame(statCollector)
         if r == -2:
             games["Fascist_elect_Hitler"] += 1
@@ -281,3 +305,4 @@ if __name__ == "__main__":
           str(games["Fascist_policy"] + games["Fascist_elect_Hitler"]))
     print("Random policies passed: " + str(statCollector.random_policies_played) + " (Random policies per game: " + str(statCollector.random_policies_played / numgames) + ")")
     print(str(statCollector.agent_wins))
+    print(str(statCollector.agent_kills))

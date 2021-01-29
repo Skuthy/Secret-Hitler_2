@@ -1,20 +1,22 @@
 import sys
 from os import path
 from random import getrandbits, choice
-sys.path.append( path.dirname( path.dirname( path.abspath(__file__) ) ) )
+
+from HitlerBoard import HitlerState
+sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 from HitlerPlayer import HitlerPlayer, Ja, Nein
 
-name = "TrustingPlayer"
+name = "GoodGuy"
 
-class TrustingPlayer(HitlerPlayer):
+class GoodGuy(HitlerPlayer):
     def __init__(self, id, name, role, state):
-        super(TrustingPlayer, self).__init__(id, name, role, state)
+        super(GoodGuy, self).__init__(id, name, role, state)
 
     def vote(self):
-        """
-        Always vote Ja!
-        """
-        return Ja()
+        if self.state.president == self or self.state.chancellor == self or self.state.failed_votes == 3:
+            return Ja()
+        else:
+            return Nein()
 
     def nominate_chancellor(self):
         """
@@ -25,7 +27,7 @@ class TrustingPlayer(HitlerPlayer):
         chancellor = self
         while chancellor == self:
             chancellor = choice(self.state.players)
-        #print("Player #%d choosing chancellor: %s" % (self.id, chancellor.id))
+        # print("Player #%d choosing chancellor: %s" % (self.id, chancellor.id))
         return chancellor
 
     def view_policies(self, policies):
@@ -41,8 +43,10 @@ class TrustingPlayer(HitlerPlayer):
         :return:
         """
         kill = self
-        while kill == self or kill.is_dead:
+        while kill == self or kill.is_dead or kill == self.state.chancellor:
             kill = choice(self.state.players)
+        return kill
+
         return kill
 
     def inspect_player(self):
@@ -66,10 +70,10 @@ class TrustingPlayer(HitlerPlayer):
         return choose
 
     def enact_policy(self, policies):
-        return (policies[0], policies[1])
+        return policies[0], policies[1]
 
     def filter_policies(self, policies):
-        return ([policies[0], policies[1]], policies[2])
+        return [policies[0], policies[1]], policies[2]
 
     def veto(self, policies):
         return False

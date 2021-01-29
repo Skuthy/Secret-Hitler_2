@@ -1,21 +1,23 @@
 import sys
 from os import path
 from random import getrandbits, choice
-sys.path.append( path.dirname( path.dirname( path.abspath(__file__) ) ) )
+
+sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 from HitlerPlayer import HitlerPlayer, Ja, Nein
 
 name = "DumbOvertFascist"
 
+
 class DumbOvertFascist(HitlerPlayer):
     def __init_(self, id, name, role, state):
         super(DumbOvertFascist, self).__init__(id, name, role, state)
-        
+
     def vote(self):
         """
         Always vote yes to a vote involving at least one fascist if you're fascist, randomly otherwise
         """
-        if (self.is_fascist and len(self.fascists) > 0):
-            if (self.state.president in self.fascists or self.state.chancellor in self.fascists):
+        if self.is_fascist and len(self.fascists) > 0:
+            if self.state.president in self.fascists or self.state.chancellor in self.fascists:
                 return Ja()
             else:
                 return Nein()
@@ -28,7 +30,7 @@ class DumbOvertFascist(HitlerPlayer):
         """
         Nominate Hitler as chancellor if fascist, randomly otherwise
         """
-        if (self.is_fascist and not self.is_hitler and self.state.ex_president != self.hitler and self.state.chancellor != self.hitler):
+        if self.is_fascist and not self.is_hitler and self.state.ex_president != self.hitler and self.state.chancellor != self.hitler:
             return self.hitler
         assert len(self.state.players) > 0
         chancellor = self
@@ -69,24 +71,27 @@ class DumbOvertFascist(HitlerPlayer):
         :return:
         """
         choose = self
-        while choose == self or choose.is_dead or (self.is_fascist and len(self.fascists) > 0 and choose not in self.fascists):
+        while choose == self or choose.is_dead or (
+                self.is_fascist and len(self.fascists) > 0 and choose not in self.fascists):
             choose = choice(self.state.players)
         return choose
 
     def enact_policy(self, policies):
-        if (self.is_fascist):
-            if (policies[0].type == "fascist"):
-                return (policies[0], policies[1])
+        if self.is_fascist:
+            if policies[0].type == "fascist":
+                return policies[0], policies[1]
             else:
-                return (policies[1], policies[0])
-        if (policies[0].type == "liberal"):
-            return (policies[0], policies[1])
-        return (policies[1], policies[0])
+                return policies[1], policies[0]
+        if policies[0].type == "liberal":
+            return policies[0], policies[1]
+        return policies[1], policies[0]
 
     def filter_policies(self, policies):
-        #if fascist, bury a liberal if you can.
+        """
+        if fascist, bury a liberal if you can.
+        """
         choices = []
-        if (self.is_fascist):
+        if self.is_fascist:
             for policy in policies:
                 if policy.type == "fascist" and len(choices) < 2:
                     choices += [policy]
@@ -94,12 +99,13 @@ class DumbOvertFascist(HitlerPlayer):
             for policy in policies:
                 if policy.type == "liberal" and len(choices) < 2:
                     choices += [policy]
+
         while len(choices) < 2:
             choices += [list(filter(lambda x: x not in choices, policies))[0]]
-        return (choices, list(filter(lambda x: x not in choices, policies))[0])
+        return choices, list(filter(lambda x: x not in choices, policies))[0]
 
-    def veto(self):
-        if (self.is_fascist):
+    def veto(self, policies):
+        if self.is_fascist:
             return False
         else:
             return True

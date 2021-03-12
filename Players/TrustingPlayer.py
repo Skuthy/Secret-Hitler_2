@@ -35,6 +35,7 @@ class TrustingPlayer(HitlerPlayer):
         """
         pass
 
+    @property
     def kill(self):
         """
         Choose a person to kill

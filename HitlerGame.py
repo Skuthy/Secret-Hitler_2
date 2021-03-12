@@ -86,12 +86,13 @@ class HitlerGame(object):
 
         self.board = HitlerBoard(self.state, self.playernum)
         roles = self.board.shuffle_roles()
-
+        pocet = 0
         for num in range(self.playernum):
             # name = raw_input("Player #%d's name?\n" % num)
-            # if str(roles[0]) == 'liberal':
-            if num == 50:
-                playertype = DumbPlayer #choice(self.playertypes)
+            #if str(roles[0]) == 'liberal':
+            if str(roles[0]) == 'liberal' and pocet == 0:
+                playertype = GoodGuy #choice(self.playertypes)
+                pocet = pocet + 1
             else:
                 # print(roles)
                 playertype = DumbPlayer
@@ -171,12 +172,10 @@ class HitlerGame(object):
 
     def vote_failed(self):
         self.state.failed_votes += 1
-        if self.stats is not None:
-            self.stats.rando()
 
         if self.state.failed_votes == 3:
             self.state.failed_votes = 0
-
+            self.stats.rando()
             # print("Too many failed votes! Citizens are taking action into their own hands")
             return self.board.enact_policy(self.board.draw_policy(1)[0])
 
@@ -226,9 +225,9 @@ class HitlerGame(object):
             self.board.return_policy(top_three)
 
         elif action == "kill":
-            killed_player = self.state.president.kill()
+            killed_player = self.state.president.kill
             while killed_player.is_dead or killed_player == self.state.president:
-                killed_player = self.state.president.kill()
+                killed_player = self.state.president.kill
             killed_player.is_dead = True
 
             if killed_player.is_fascist and not killed_player.is_hitler:
@@ -242,7 +241,6 @@ class HitlerGame(object):
             while inspected_player.is_dead or inspected_player == self.state.president:
                 inspected_player = self.state.president.inspect_player()
                 self.state.president.inspected_players[inspected_player] = inspected_player.role.party_membership
-
         elif action == "choose":
             chosen = self.state.president
             while chosen == self.state.president or chosen.is_dead:
@@ -279,7 +277,7 @@ class HitlerGame(object):
 
 
 def newgame(statCollector):
-    game = HitlerGame(8, statCollector)
+    game = HitlerGame(10, statCollector)
     return game.play()
 
 
@@ -287,7 +285,7 @@ if __name__ == "__main__":
     games = {"Liberal_policy": 0, "Liberal_kill_Hitler": 0, "Fascist_policy": 0, "Fascist_elect_Hitler": 0}
     print("Beginning play.")
     statCollector = HitlerStats()
-    numgames = 10000
+    numgames = 10
     for ii in tqdm(range(numgames)):
         # print(ii)
         r = newgame(statCollector)

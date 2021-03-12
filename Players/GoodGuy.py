@@ -1,19 +1,19 @@
 import sys
 from os import path
 from random import getrandbits, choice
-
 from HitlerBoard import HitlerState
 sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 from HitlerPlayer import HitlerPlayer, Ja, Nein
 
 name = "GoodGuy"
 
+
 class GoodGuy(HitlerPlayer):
     def __init__(self, id, name, role, state):
         super(GoodGuy, self).__init__(id, name, role, state)
 
     def vote(self):
-        if self.state.president == self or self.state.chancellor == self or self.state.failed_votes == 3:
+        if self.state.president == self or self.state.chancellor == self or self.state.failed_votes == 2:
             return Ja()
         else:
             return Nein()
@@ -37,16 +37,23 @@ class GoodGuy(HitlerPlayer):
         """
         pass
 
+    @property
     def kill(self):
         """
         Choose a person to kill
         :return:
         """
+        # self.inspected_player
+        try:
+            for k, v in self.inspected_players.items():
+                if v == "fascist" and not k.is_dead:
+                    kill = k
+                    return kill
+        except:
+            print("chyba zabijeni")
         kill = self
         while kill == self or kill.is_dead or kill == self.state.chancellor:
             kill = choice(self.state.players)
-        return kill
-
         return kill
 
     def inspect_player(self):
@@ -70,10 +77,21 @@ class GoodGuy(HitlerPlayer):
         return choose
 
     def enact_policy(self, policies):
-        return policies[0], policies[1]
+        if policies[0].type == "liberal":
+            return policies[0], policies[1]
+        return policies[1], policies[0]
 
     def filter_policies(self, policies):
-        return [policies[0], policies[1]], policies[2]
+        choices = []
+        for policy in policies:
+            if policy.type == "liberal" and len(choices) < 2:
+                choices += [policy]
+
+        while len(choices) < 2:
+            choices += [list(filter(lambda x: x not in choices, policies))[0]]
+        return choices, list(filter(lambda x: x not in choices, policies))[0]
 
     def veto(self, policies):
+        if policies.type == "fascist":
+            return True
         return False

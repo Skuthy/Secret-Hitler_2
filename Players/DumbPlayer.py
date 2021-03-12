@@ -1,7 +1,7 @@
 import sys
 from os import path
 from random import getrandbits, choice
-sys.path.append( path.dirname( path.dirname( path.abspath(__file__) ) ) )
+sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 from HitlerPlayer import HitlerPlayer, Ja, Nein
 
 name = "DumbPlayer"
@@ -41,6 +41,7 @@ class DumbPlayer(HitlerPlayer):
         """
         pass
 
+    @property
     def kill(self):
         """
         Choose a person to kill

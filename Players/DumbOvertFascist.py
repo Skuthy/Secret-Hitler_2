@@ -44,7 +44,7 @@ class DumbOvertFascist(HitlerPlayer):
         :return:
         """
         pass
-
+    @property
     def kill(self):
         """
         Choose a person to kill

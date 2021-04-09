@@ -11,6 +11,7 @@ class HitlerBoard(object):
         self.num_liberals = players[self.num_players]["liberal"]
         self.num_fascists = players[self.num_players]["fascist"]
         self.fascist_track_actions = players[self.num_players]["track"]
+        self.last = None
 
         self.policies = []
                          
@@ -83,14 +84,21 @@ class HitlerBoard(object):
     def enact_policy(self, policy):
         if policy.type == "liberal":
             self.state.liberal_track += 1
+            self.last = "liberal"
+
         else:
             self.state.fascist_track += 1
+            self.last = "fascist"
             if self.fascist_track_actions[self.state.fascist_track - 1] is not None:
                 return True
 
         return False
 
+    def getLastPolicy(self):
+        return self.last
 
+    def getFascistTrack(self):
+        return self.last
 class HitlerState(object):
     """Storage object for game state"""
     def __init__(self):

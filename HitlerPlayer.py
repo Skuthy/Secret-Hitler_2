@@ -88,7 +88,18 @@ class HitlerPlayer(object):
         :return:
         """
         raise NotImplementedError("Player must choose next president")
-
+    def evaluate(self):
+        """
+        Evalueate players for their actions
+        :return:
+        """
+        raise NotImplementedError("Player must be evaluated")
+    def reevaluate(self, player1, player2, policy):
+        """
+        Evalueate players for their actions
+        :return:
+        """
+        raise NotImplementedError("Player must be evaluated")
 class Vote(object):
     def __init__(self, type):
         self.type = type

@@ -11,10 +11,11 @@ from Players.DumbPlayer import DumbPlayer
 from Players.GoodGuy import GoodGuy
 from Players.SelfishRandom import SelfishRandom
 from Players.TrustingPlayer import TrustingPlayer
-
+from Players.SuperPlayer import SuperPlayer
 
 
 class HitlerGame(object):
+
     def __init__(self, playernum=0, stats=None):
         """Stuff"""
         self.HitlerState = None
@@ -31,7 +32,8 @@ class HitlerGame(object):
         self.assign_players()
         self.inform_fascists()
         self.choose_first_president()
-
+        for player in self.state.players:
+                player.evaluate()
         loop_game = True
 
         while loop_game:
@@ -64,9 +66,13 @@ class HitlerGame(object):
                 return True
 
             action_enacted = self.vote_passed()
-
         if action_enacted:
             self.perform_vote_action()
+
+        if HitlerBoard.getLastPolicy(self.board) is not None and voted is True:
+            for player in self.state.players:
+                if not player.is_dead:
+                    player.reevaluate(self.state.president.id, self.state.chancellor.id, HitlerBoard.getLastPolicy(self.board))
 
         if self.policy_win():
             return True
@@ -91,12 +97,12 @@ class HitlerGame(object):
         for num in range(self.playernum):
             # name = raw_input("Player #%d's name?\n" % num)
             #if str(roles[0]) == 'liberal':
-            if str(roles[0]) == 'fascist' and pocet == 1:
+            if str(roles[0]) == 'fascist' or str(roles[0]) == 'hitler':
                 playertype = DumbOvertFascist #choice(self.playertypes)
                 pocet = pocet + 1
             else:
                 # print(roles)
-                playertype = SelfishRandom
+                playertype = SuperPlayer
             #playertype = TrustingPlayer DumbOvertFascist DumbPlayer
             name = playertype.__name__ + ": " + str(num)
             player = playertype(num,
@@ -278,7 +284,7 @@ class HitlerGame(object):
 
 
 def newgame(statCollector):
-    game = HitlerGame(10, statCollector)
+    game = HitlerGame(9, statCollector)
     return game.play()
 
 
@@ -286,7 +292,7 @@ if __name__ == "__main__":
     games = {"Liberal_policy": 0, "Liberal_kill_Hitler": 0, "Fascist_policy": 0, "Fascist_elect_Hitler": 0}
     print("Beginning play.")
     statCollector = HitlerStats()
-    numgames = 100000
+    numgames = 10000
     for ii in tqdm(range(numgames)):
         # print(ii)
         r = newgame(statCollector)

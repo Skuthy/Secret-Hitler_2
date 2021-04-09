@@ -74,3 +74,6 @@ class TrustingPlayer(HitlerPlayer):
 
     def veto(self, policies):
         return False
+
+    def evaluate(self, player1, player2, policy):
+        pass

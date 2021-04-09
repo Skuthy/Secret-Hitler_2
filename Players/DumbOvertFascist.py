@@ -109,3 +109,8 @@ class DumbOvertFascist(HitlerPlayer):
             return False
         else:
             return True
+    def reevaluate(self, player1, player2, policy):
+        pass
+
+    def evaluate(self):
+        pass

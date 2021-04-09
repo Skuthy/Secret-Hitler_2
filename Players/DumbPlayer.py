@@ -87,3 +87,9 @@ class DumbPlayer(HitlerPlayer):
         veto = bool(getrandbits(1))
         #print("Player #%d choosing to veto: %s" % (self.id, veto))
         return veto
+
+    def reevaluate(self, player1, player2, policy):
+        pass
+
+    def evaluate(self):
+        pass

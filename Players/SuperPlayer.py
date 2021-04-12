@@ -11,21 +11,26 @@ class SuperPlayer(HitlerPlayer):
         super(SuperPlayer, self).__init__(id, name, role, state)
         self.evaluation_players = {}
 
+    # Hlasovani o vlade
     def vote(self):
-        if self.state.fascist_track >= 3 and (self.evaluation_players[self.state.president.id] < 40 and self.evaluation_players[self.state.chancellor.id] < 40):
+        # Hrozi zvoleni Hitlera za Kanclere a neverim obema hracum - zamitam
+        if self.state.fascist_track >= 3 and (self.evaluation_players[self.state.president.id] < 40\
+                                              and self.evaluation_players[self.state.chancellor.id] < 40):
             return Nein()
+        # Jsem Prezident a Kancler ma alespon 50 hodnoceni
         if ((self.state.president == self and self.evaluation_players[self.state.chancellor.id] >= 50)\
+            # Jsem Kancer a Prezident ma alespon 40 hodnoceni
             or (self.state.chancellor == self and self.evaluation_players[self.state.president.id] >= 40)\
-                or (self.state.failed_votes == 2) or (self.evaluation_players[self.state.president.id] >= 50 and self.evaluation_players[self.state.chancellor.id] >= 50)):
+                # Nejsem ani jedno, ale hrozi vylozeni nahodne politiky, nebo verim obema hracum - 50 hodnoceni
+                or (self.state.failed_votes == 2) or (self.evaluation_players[self.state.president.id] >= 50\
+                                                      and self.evaluation_players[self.state.chancellor.id] >= 50)):
+            # Schvaluju
             return Ja()
+        # Zamitam
         else:
             return Nein()
 
     def nominate_chancellor(self):
-        """
-        More random!
-        :return: HitlerPlayer
-        """
         assert len(self.state.players) > 0
         chancellor = self
         sorted_dict = {k: v for k, v in sorted(self.evaluation_players.items(), key=lambda item: item[1], reverse=True)}
@@ -37,18 +42,10 @@ class SuperPlayer(HitlerPlayer):
         return chancellor
 
     def view_policies(self, policies):
-        """
-        What to do if you perform the presidential action to view the top three policies
-        :return:
-        """
         pass
 
     @property
     def kill(self):
-        """
-        Choose a person to kill
-        :return:
-        """
         # self.inspected_player
         try:
             for k, v in self.inspected_players.items():
@@ -68,10 +65,6 @@ class SuperPlayer(HitlerPlayer):
         return kill
 
     def inspect_player(self):
-        """
-        Choose a person's party membership to inspect
-        :return:
-        """
         inspect = self
         while inspect == self or inspect.is_dead:
             inspect = choice(self.state.players)
@@ -85,10 +78,6 @@ class SuperPlayer(HitlerPlayer):
         return inspect
 
     def choose_next(self):
-        """
-        Choose the next president
-        :return:
-        """
         choose = self
         sorted_dict = {k: v for k, v in sorted(self.evaluation_players.items(), key=lambda item: item[1], reverse=True)}
         for i in sorted_dict.keys():
@@ -118,15 +107,22 @@ class SuperPlayer(HitlerPlayer):
             return True
         return False
 
+
+    # Nastaveni hodnoceni na zacatku hry.
     def evaluate(self):
         for i in self.state.players:
+            # Sobe na 100
             if self.id == i.id:
                 self.evaluation_players[i.id] = 100
+            # Ostatnim hracum na 50
             else:
                 self.evaluation_players[i.id] = 50
 
+    # Zmeny hodnoceni
     def reevaluate(self, player1_id, player2_id, policy):
+        # Menim obema hracum, sobe ne
         if self.id is not player1_id:
+            # V pripade Liberalniho zakona + 10 jinak - 10
             if policy =="liberal":
                 self.evaluation_players[player1_id] = self.evaluation_players[player1_id] + 10
             else:

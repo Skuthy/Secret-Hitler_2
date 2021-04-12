@@ -19,10 +19,6 @@ class GoodGuy(HitlerPlayer):
             return Nein()
 
     def nominate_chancellor(self):
-        """
-        More random!
-        :return: HitlerPlayer
-        """
         assert len(self.state.players) > 0
         chancellor = self
         while chancellor == self:
@@ -31,18 +27,10 @@ class GoodGuy(HitlerPlayer):
         return chancellor
 
     def view_policies(self, policies):
-        """
-        What to do if you perform the presidential action to view the top three policies
-        :return:
-        """
         pass
 
     @property
     def kill(self):
-        """
-        Choose a person to kill
-        :return:
-        """
         # self.inspected_player
         try:
             for k, v in self.inspected_players.items():
@@ -57,20 +45,12 @@ class GoodGuy(HitlerPlayer):
         return kill
 
     def inspect_player(self):
-        """
-        Choose a person's party membership to inspect
-        :return:
-        """
         inspect = self
         while inspect == self or inspect.is_dead:
             inspect = choice(self.state.players)
         return inspect
 
     def choose_next(self):
-        """
-        Choose the next president
-        :return:
-        """
         choose = self
         while choose == self or choose.is_dead:
             choose = choice(self.state.players)

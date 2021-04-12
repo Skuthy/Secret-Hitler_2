@@ -1,33 +1,27 @@
 import sys
 from os import path
 from random import getrandbits, choice
-
 sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 from HitlerPlayer import HitlerPlayer, Ja, Nein
+import operator
+name = "SecretHitler"
 
-name = "DumbOvertFascist"
+class SecretHitler(HitlerPlayer):
+    def __init__(self, id, name, role, state):
+        super(SecretHitler, self).__init__(id, name, role, state)
 
-
-class DumbOvertFascist(HitlerPlayer):
-    def __init_(self, id, name, role, state):
-        super(DumbOvertFascist, self).__init__(id, name, role, state)
-
+    # Hlasovani o vlade
     def vote(self):
         """
         Always vote yes to a vote involving at least one fascist if you're fascist, randomly otherwise
         """
-        if self.is_fascist and len(self.fascists) > 0:
-            if self.state.president in self.fascists or self.state.chancellor in self.fascists:
-                return Ja()
-            else:
-                return Nein()
-        if bool(getrandbits(1)):
+        if self.state.president in self.fascists or self.state.chancellor in self.fascists:
             return Ja()
         else:
             return Nein()
 
     def nominate_chancellor(self):
-        if self.is_fascist and not self.is_hitler and self.state.ex_president != self.hitler and self.state.chancellor != self.hitler and self.state.fascist_track >= 3:
+        if self.is_fascist and not self.is_hitler and self.state.ex_president != self.hitler and self.state.chancellor != self.hitler:
             return self.hitler
         assert len(self.state.players) > 0
         chancellor = self
@@ -36,11 +30,8 @@ class DumbOvertFascist(HitlerPlayer):
         return chancellor
 
     def view_policies(self, policies):
-        """
-        What to do if you perform the presidential action to view the top three policies
-        :return:
-        """
         pass
+
     @property
     def kill(self):
         kill = self
@@ -62,40 +53,30 @@ class DumbOvertFascist(HitlerPlayer):
         return choose
 
     def enact_policy(self, policies):
-        if self.is_fascist:
-            if policies[0].type == "fascist":
-                return policies[0], policies[1]
-            else:
-                return policies[1], policies[0]
         if policies[0].type == "liberal":
             return policies[0], policies[1]
         return policies[1], policies[0]
 
     def filter_policies(self, policies):
-        """
-        if fascist, bury a liberal if you can.
-        """
         choices = []
-        if self.is_fascist:
-            for policy in policies:
-                if policy.type == "fascist" and len(choices) < 2:
-                    choices += [policy]
-        else:
-            for policy in policies:
-                if policy.type == "liberal" and len(choices) < 2:
-                    choices += [policy]
+        for policy in policies:
+            if self.state.fascist_track >= 3 and policy.type == "fascist" and len(choices) < 2:
+                choices += [policy]
+            elif policy.type == "liberal" and len(choices) < 2:
+                choices += [policy]
 
         while len(choices) < 2:
             choices += [list(filter(lambda x: x not in choices, policies))[0]]
         return choices, list(filter(lambda x: x not in choices, policies))[0]
 
     def veto(self, policies):
-        if self.is_fascist:
-            return False
-        else:
-            return True
-    def reevaluate(self, player1, player2, policy):
+        return False
+
+
+    # Nastaveni hodnoceni na zacatku hry.
+    def evaluate(self):
         pass
 
-    def evaluate(self):
+    # Zmeny hodnoceni
+    def reevaluate(self, player1_id, player2_id, policy):
         pass

@@ -5,7 +5,8 @@ sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 from HitlerPlayer import HitlerPlayer, Ja, Nein
 
 name = "DumbPlayer"
-
+# Náhodný hráč
+# hraje úplně všecho náhodně
 class DumbPlayer(HitlerPlayer):
     def __init__(self, id, name, role, state):
         super(DumbPlayer, self).__init__(id, name, role, state)

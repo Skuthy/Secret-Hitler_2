@@ -5,7 +5,8 @@ sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 from HitlerPlayer import HitlerPlayer, Ja, Nein
 
 name = "SelfishRandom"
-
+# Sobecký Náhodný hráč
+# Volí všechno náhodně, jen kartu kterou vykládá a posílá chce poslat svoji strany
 class SelfishRandom(HitlerPlayer):
     def __init__(self, id, name, role, state):
         super(SelfishRandom, self).__init__(id, name, role, state)
@@ -74,7 +75,7 @@ class SelfishRandom(HitlerPlayer):
             choose = choice(self.state.players)
         #print("Player #%d choosing: %s" % (self.id, choose.id))
         return choose
-
+# vykládá kartu své strany
     def enact_policy(self, policies):
         if self.is_fascist:
             if policies[0].type == "fascist":
@@ -84,7 +85,7 @@ class SelfishRandom(HitlerPlayer):
         if policies[0].type == "liberal":
             return policies[0], policies[1]
         return policies[1], policies[0]
-
+    # vykládá kartu své strany
     def filter_policies(self, policies):
         """
         if fascist, bury a liberal if you can.

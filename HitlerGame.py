@@ -12,9 +12,9 @@ from Players.GoodGuy import GoodGuy
 from Players.SelfishRandom import SelfishRandom
 from Players.TrustingPlayer import TrustingPlayer
 from Players.SuperPlayer import SuperPlayer
-from Players.SecretHitler import SecretHitler
+from Players.SecretFascist import SecretFascist
 
-
+# zde běží celá hra
 class HitlerGame(object):
 
     def __init__(self, playernum=0, stats=None):
@@ -26,7 +26,7 @@ class HitlerGame(object):
         self.state = HitlerState()
         self.stats = stats
         self.playertypes = []
-
+    # nastavení základních hráčů
     def play(self):
         """Main game loop"""
         self.load_players()
@@ -43,7 +43,7 @@ class HitlerGame(object):
 
         # print("Game's over!")
         return self.finish_game()
-
+# jednotlivá kola hry
     def turn(self):
         """
         Take a turn.
@@ -95,17 +95,19 @@ class HitlerGame(object):
         self.board = HitlerBoard(self.state, self.playernum)
         roles = self.board.shuffle_roles()
         pocet = 0
+        # nastavení rolí
         for num in range(self.playernum):
             # name = raw_input("Player #%d's name?\n" % num)
-            #if str(roles[0]) == 'liberal':
-            if str(roles[0]) == 'liberal': # or str(roles[0]) == 'hitler':
-                playertype = SuperPlayer #choice(self.playertypes)
+            #if str(roles[0]) == 'liberal': # pro liberální role #  and num == 0: # pro jednoho hráče
+            if str(roles[0]) == 'fascist' or str(roles[0]) == 'hitler': # and num == 0: # pro jednoho hráče
+                playertype = SecretFascist # zde si také můžeme nastavit typy hráčů #playertype = SuperPlayer DumbOvertFascist DumbPlayer SelfishRandom GoodGuy
                 pocet = pocet + 1
 
             else:
                 # print(roles)
-                playertype = DumbOvertFascist
-            #playertype = TrustingPlayer DumbOvertFascist DumbPlayer
+                # ostatní hráči
+                playertype = SuperPlayer
+            #playertype = GoodGuy DumbOvertFascist DumbPlayer SelfishRandom SecretFascist
             name = playertype.__name__ + ": " + str(num)
             player = playertype(num,
                                 name,
@@ -141,12 +143,12 @@ class HitlerGame(object):
         be the next person after them.
         """
         self.state.president = self.state.players[randint(0, len(self.state.players) - 1)]
-
+# další prezident
     def set_next_president(self):
         self.state.president = self.state.players[(self.state.president.id + 1) % len(self.state.players)]
         if self.state.president.is_dead:
             self.set_next_president()
-
+# zvolení si kancléře
     def nominate_chancellor(self):
         chancellor = self.state.chancellor
         while (chancellor == self.state.chancellor or
@@ -157,7 +159,7 @@ class HitlerGame(object):
             chancellor = self.state.president.nominate_chancellor()
         # nutna kontrola v nominate_chancellor pro kazdeho hrace - aby volil validniho chancellora nebo se to zacykli
         return chancellor
-
+# volení
     def voting(self):
         """
         Get votes for the current pairing from all players.
@@ -178,7 +180,7 @@ class HitlerGame(object):
                 positivity -= 1
 
         return positivity > 0
-
+# hlasovani neproslo
     def vote_failed(self):
         self.state.failed_votes += 1
 
@@ -191,7 +193,7 @@ class HitlerGame(object):
         else:
             # Not enacting a vote, take another turn
             return False
-
+# hlasovani proslo
     def vote_passed(self):
         """
         The vote has passed! Get the president and chancellor to do their thang.
@@ -211,14 +213,14 @@ class HitlerGame(object):
         (enact, discard) = self.state.chancellor.enact_policy(take)
         self.board.discards.append(discard)
         return self.board.enact_policy(enact)
-
+# vyhra na zvoleni Hitlera za Kanclere
     def hitler_chancellor_win(self):
         return (self.state.fascist_track >= 3 and
                 self.state.chancellor == self.hitler)
-
+# vyhra na politiky
     def policy_win(self):
         return self.state.liberal_track == 5 or self.state.fascist_track == 6
-
+# speciální akce
     def perform_vote_action(self):
         action = self.board.fascist_track_actions[self.state.fascist_track - 1]
 
@@ -227,12 +229,12 @@ class HitlerGame(object):
             return
 
         #print("Performing vote action: %s" % action)
-
+# kouknutí na politi, nepracuje se s tím
         if action == "policy":
             top_three = self.board.draw_policy(3)
             self.state.president.view_policies(top_three)
             self.board.return_policy(top_three)
-
+# zabití
         elif action == "kill":
             killed_player = self.state.president.kill
             while killed_player.is_dead or killed_player == self.state.president:
@@ -245,21 +247,22 @@ class HitlerGame(object):
                 self.stats.smrti('Hitler kills')
             else:
                 self.stats.smrti('Liberal kills')
+# zjištění identity
         elif action == "inspect":
             inspected_player = self.state.president
             while inspected_player.is_dead or inspected_player == self.state.president:
                 inspected_player = self.state.president.inspect_player()
                 self.state.president.inspected_players[inspected_player] = inspected_player.role.party_membership
+# další prezident
         elif action == "choose":
             chosen = self.state.president
             while chosen == self.state.president or chosen.is_dead:
                 chosen = self.state.president.choose_next()
 
             self.state.president = chosen
-
         else:
             assert False, "Unrecognised action!"
-
+# konec hry statistiky na co se vyhrálo v jednotlivé hře
     def finish_game(self):
         if self.hitler.is_dead:
             for x in [player for player in self.state.players if not player.is_fascist]:
@@ -286,6 +289,7 @@ class HitlerGame(object):
 
 
 def newgame(statCollector):
+    # zde se nastavuje počet hráčů co hru budou hrát - rozpětí 5-10
     game = HitlerGame(7, statCollector)
     return game.play()
 
@@ -294,7 +298,9 @@ if __name__ == "__main__":
     games = {"Liberal_policy": 0, "Liberal_kill_Hitler": 0, "Fascist_policy": 0, "Fascist_elect_Hitler": 0}
     print("Beginning play.")
     statCollector = HitlerStats()
-    numgames = 100000
+    # počet her kolik hráči mají odehrát
+    numgames = 10
+    # výpisy statistik
     for ii in tqdm(range(numgames)):
         # print(ii)
         r = newgame(statCollector)

@@ -5,7 +5,7 @@ sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 from HitlerPlayer import HitlerPlayer, Ja, Nein
 import operator
 name = "SuperPlayer"
-
+# Ultimátní Hráč
 class SuperPlayer(HitlerPlayer):
     def __init__(self, id, name, role, state):
         super(SuperPlayer, self).__init__(id, name, role, state)
@@ -29,7 +29,7 @@ class SuperPlayer(HitlerPlayer):
         # Zamitam
         else:
             return Nein()
-
+# vybírá nejdůvěryhodnějšího hráče kterého podle pravidel může
     def nominate_chancellor(self):
         assert len(self.state.players) > 0
         chancellor = self
@@ -38,12 +38,12 @@ class SuperPlayer(HitlerPlayer):
             chancellor = self.state.players[i]
             if chancellor is not self and not chancellor.is_dead and chancellor is not self.state.chancellor and chancellor is not self.state.ex_president:
                 break
-        #print("Player #%d choosing chancellor: %s" % (self.id, chancellor.id))
         return chancellor
 
     def view_policies(self, policies):
         pass
 
+# pokud o někom ví, že je fašista, tak ho zabije
     @property
     def kill(self):
         # self.inspected_player
@@ -56,14 +56,14 @@ class SuperPlayer(HitlerPlayer):
             print("chyba zabijeni")
 
         kill = self
-
+# jinak zabíjí nejpodezřelejšího hráče
         sorted_dict = {k: v for k, v in sorted(self.evaluation_players.items(), key=lambda item: item[1])}
         for i in sorted_dict.keys():
             kill = self.state.players[i]
             if kill is not self and not kill.is_dead and kill is not self.state.chancellor:
                 break
         return kill
-
+# prověří identitu hráče a podle toho mu upraví hodnocení
     def inspect_player(self):
         inspect = self
         while inspect == self or inspect.is_dead:
@@ -73,10 +73,9 @@ class SuperPlayer(HitlerPlayer):
             self.evaluation_players[inspect.id] = 100
         else:
             self.evaluation_players[inspect.id] = self.evaluation_players[inspect.id] - 100
-
-    #print("Player #%d inspecting: %s" % (self.id, inspect.id))
         return inspect
 
+# vybere dalšího Prezidenta, podle toho komu nejvíce věří
     def choose_next(self):
         choose = self
         sorted_dict = {k: v for k, v in sorted(self.evaluation_players.items(), key=lambda item: item[1], reverse=True)}
@@ -84,14 +83,15 @@ class SuperPlayer(HitlerPlayer):
             choose = self.state.players[i]
             if choose is not self and not choose.is_dead:
                 break
-        #print("Player #%d choosing: %s" % (self.id, choose.id))
         return choose
 
+#vylož liberální politiku
     def enact_policy(self, policies):
         if policies[0].type == "liberal":
             return policies[0], policies[1]
         return policies[1], policies[0]
 
+#pošli liberální politiku
     def filter_policies(self, policies):
         choices = []
         for policy in policies:

@@ -1,3 +1,4 @@
+# nastavení základních údajů o hře při určitém počtu hráčů
 players = {
     5: {
         "liberal": 3,

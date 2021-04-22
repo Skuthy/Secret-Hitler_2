@@ -3,7 +3,7 @@ from random import shuffle
 import HitlerPolicy
 import HitlerRole
 
-
+# základní nastavení hry
 class HitlerBoard(object):
     def __init__(self, state, playercount):
         self.state = state
@@ -24,7 +24,7 @@ class HitlerBoard(object):
         shuffle(self.policies)
         self.discards = []
         self.previous = []
-
+# zamíchání rolí
     def shuffle_roles(self):
         all_roles = ([HitlerRole.Liberal()] * self.num_liberals +
                      [HitlerRole.Fascist()] * self.num_fascists +
@@ -32,7 +32,7 @@ class HitlerBoard(object):
         shuffle(all_roles)
 
         return all_roles
-
+# líznutí politiky, případné zamíchání zahozených politik zpátky do balíčku
     def draw_policy(self, num):
         """
         Draw cards from the policy pile
@@ -55,7 +55,7 @@ class HitlerBoard(object):
             #print ("New policy pile: %s" % self.policies)
             assert len(self.policies) > num
             return self.draw_policy(num)
-
+# odhazovací balíček
     def discard(self, cards):
         """
         Discard the card we've been given, assert that they're Policy cards!
@@ -80,7 +80,7 @@ class HitlerBoard(object):
             assert isinstance(policy, HitlerPolicy.Policy)
 
         self.policies = policies + self.policies
-
+# vyložené karty
     def enact_policy(self, policy):
         if policy.type == "liberal":
             self.state.liberal_track += 1
@@ -93,12 +93,13 @@ class HitlerBoard(object):
                 return True
 
         return False
-
+    # poslední vyložená politika
     def getLastPolicy(self):
         return self.last
-
+    # počet vyložených fašistických karet
     def getFascistTrack(self):
         return self.last
+# přehled o hře
 class HitlerState(object):
     """Storage object for game state"""
     def __init__(self):

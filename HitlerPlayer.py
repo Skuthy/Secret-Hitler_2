@@ -1,3 +1,4 @@
+#popis vlastností hráčů
 class HitlerPlayer(object):
     def __init__(self, id, name, role, state):
         self.id = id
